@@ -43,8 +43,6 @@ type Request struct {
 // rejecting unauthenticated requests, it can optionally attach an identity to
 // context of authenticated requests.
 type Interceptor struct {
-	connect.Interceptor
-
 	auth func(context.Context, *Request) (any, error)
 }
 
@@ -60,7 +58,7 @@ type Interceptor struct {
 //
 // Authentication functions must be safe to call concurrently.
 func New(f func(context.Context, *Request) (any, error)) *Interceptor {
-	return &Interceptor{auth: f}
+	return &Interceptor{f}
 }
 
 // WrapUnary implements connect.Interceptor.
@@ -76,6 +74,11 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 		}
 		return next(context.WithValue(ctx, identityKey, identity), req)
 	}
+}
+
+// WrapStreamingClient implements connect.Interceptor with a no-op.
+func (i *Interceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
+	return next
 }
 
 // WrapStreamingHandler implements connect.Interceptor.
