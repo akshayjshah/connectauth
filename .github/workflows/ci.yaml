@@ -1,0 +1,23 @@
+name: ci
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '15 22 * * *'
+  workflow_dispatch: {} # support manual runs
+permissions: read-all
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v3
+      - name: Test
+        run: make test
+      - name: Lint
+        run: make lint
