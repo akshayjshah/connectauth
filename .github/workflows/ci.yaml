@@ -12,11 +12,16 @@ permissions: read-all
 jobs:
   ci:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [stable, oldstable]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
       - name: Install Go
         uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
       - name: Test
         run: make test
       - name: Lint
