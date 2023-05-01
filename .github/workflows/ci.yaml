@@ -14,15 +14,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [stable, oldstable]
+        go-version: [oldstable, stable]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
       - name: Test
         run: make test
       - name: Lint
+        # Often, lint & gofmt guidelines depend on the Go version. To prevent
+        # conflicting guidance, run only on the most recent supported version.
+        if: matrix.go-version == 'stable'
         run: make lint
