@@ -77,7 +77,7 @@ major version.
 
 ## Legal
 
-Offered under the [MIT][license].
+Offered under the [MIT license][license].
 
 [connect]: https://github.com/bufbuild/connect-go
 [go-support-policy]: https://golang.org/doc/devel/release#policy
