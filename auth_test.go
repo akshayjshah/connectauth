@@ -18,17 +18,17 @@ const (
 	passphrase = "opensesame"
 )
 
-func assertIdentity(tb testing.TB, ctx context.Context) {
+func assertInfo(tb testing.TB, ctx context.Context) {
 	tb.Helper()
-	identity := GetIdentity(ctx)
-	if identity == nil {
-		tb.Fatal("no authenticated identity")
+	info := GetInfo(ctx)
+	if info == nil {
+		tb.Fatal("no authentication info")
 	}
-	name, ok := identity.(string)
-	attest.True(tb, ok, attest.Sprintf("got identity of type %T, expected string", identity))
+	name, ok := info.(string)
+	attest.True(tb, ok, attest.Sprintf("got info of type %T, expected string", info))
 	attest.Equal(tb, name, hero)
-	if id := GetIdentity(WithoutIdentity(ctx)); id != nil {
-		tb.Fatalf("got identity %v after WithoutIdentity", id)
+	if id := GetInfo(WithoutInfo(ctx)); id != nil {
+		tb.Fatalf("got info %v after WithoutInfo", id)
 	}
 }
 
@@ -51,7 +51,7 @@ func TestInterceptor(t *testing.T) {
 	mux.Handle("/unary", connect.NewUnaryHandler(
 		"unary",
 		func(ctx context.Context, _ *connect.Request[emptypb.Empty]) (*connect.Response[emptypb.Empty], error) {
-			assertIdentity(t, ctx)
+			assertInfo(t, ctx)
 			return connect.NewResponse(&emptypb.Empty{}), nil
 		},
 		connect.WithInterceptors(auth),
@@ -59,7 +59,7 @@ func TestInterceptor(t *testing.T) {
 	mux.Handle("/clientstream", connect.NewClientStreamHandler(
 		"clientstream",
 		func(ctx context.Context, _ *connect.ClientStream[emptypb.Empty]) (*connect.Response[emptypb.Empty], error) {
-			assertIdentity(t, ctx)
+			assertInfo(t, ctx)
 			return connect.NewResponse(&emptypb.Empty{}), nil
 		},
 		connect.WithInterceptors(auth),
@@ -103,8 +103,8 @@ func TestInterceptor(t *testing.T) {
 func TestMiddleware(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Check-Identity") != "" {
-			assertIdentity(t, r.Context())
+		if r.Header.Get("Check-Info") != "" {
+			assertInfo(t, r.Context())
 		}
 		io.WriteString(w, "ok")
 	})
@@ -137,9 +137,9 @@ func TestMiddleware(t *testing.T) {
 	// RPCs with the right token should be allowed.
 	assertResponse(
 		http.Header{
-			"Content-Type":   []string{"application/json"},
-			"Authorization":  []string{"Bearer " + passphrase},
-			"Check-Identity": []string{"1"}, // verify that identity is attached to context
+			"Content-Type":  []string{"application/json"},
+			"Authorization": []string{"Bearer " + passphrase},
+			"Check-Info":    []string{"1"}, // verify that auth info is attached to context
 		},
 		http.StatusOK,
 	)

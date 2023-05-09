@@ -13,36 +13,36 @@ import (
 
 type key int
 
-const identityKey key = iota
+const infoKey key = iota
 
 // An AuthFunc authenticates an RPC. The function must return an error if the
 // request cannot be authenticated. The error is typically produced with
 // [Errorf], but any error will do.
 //
 // If requests are successfully authenticated, the authentication function may
-// return the authenticated identity (or nil). Authentication functions must be
-// safe to call concurrently.
+// return some information about the authenticated caller (or nil).
+// Authentication functions must be safe to call concurrently.
 type AuthFunc = func(context.Context, *Request) (any, error)
 
-// SetIdentity attaches an authenticated identity to the context. It's often
+// SetInfo attaches authentication information to the context. It's often
 // useful in tests.
-func SetIdentity(ctx context.Context, identity any) context.Context {
-	if identity == nil {
+func SetInfo(ctx context.Context, info any) context.Context {
+	if info == nil {
 		return ctx
 	}
-	return context.WithValue(ctx, identityKey, identity)
+	return context.WithValue(ctx, infoKey, info)
 }
 
-// GetIdentity retrieves the authenticated identity, if any, from the request
+// GetInfo retrieves authentication information, if any, from the request
 // context.
-func GetIdentity(ctx context.Context) any {
-	return ctx.Value(identityKey)
+func GetInfo(ctx context.Context) any {
+	return ctx.Value(infoKey)
 }
 
-// WithoutIdentity strips the authenticated identity, if any, from the provided
+// WithoutInfo strips the authentication information, if any, from the provided
 // context.
-func WithoutIdentity(ctx context.Context) context.Context {
-	return context.WithValue(ctx, identityKey, nil)
+func WithoutInfo(ctx context.Context) context.Context {
+	return context.WithValue(ctx, infoKey, nil)
 }
 
 // Errorf is a convenience function that returns an error coded with
@@ -61,9 +61,9 @@ type Request struct {
 
 // Middleware is server-side HTTP middleware that authenticates RPC requests.
 // In addition to rejecting unauthenticated requests, it can optionally attach
-// an identity to the context of authenticated requests. Any non-RPC requests
-// (as determined by their Content-Type) are forwarded directly to the wrapped
-// handler without authentication.
+// arbitrary information to the context of authenticated requests. Any non-RPC
+// requests (as determined by their Content-Type) are forwarded directly to the
+// wrapped handler without authentication.
 //
 // Middleware operates at a lower level than [Interceptor]. For most
 // applications, Middleware is preferable because it defers decompressing and
@@ -74,9 +74,9 @@ type Middleware struct {
 }
 
 // NewMiddleware constructs HTTP middleware using the supplied authentication
-// function. If authentication succeeds, the authenticated identity (if any)
-// will be attached to the context. Subsequent HTTP middleware, all RPC
-// interceptors, and application code may access it with [GetIdentity].
+// function. If authentication succeeds, the authentication information (if
+// any) will be attached to the context. Subsequent HTTP middleware, all RPC
+// interceptors, and application code may access it with [GetInfo].
 //
 // In order to properly identify RPC requests and marshal errors, applications
 // must pass NewMiddleware the same handler options used when constructing
@@ -96,7 +96,7 @@ func (m *Middleware) Wrap(next http.Handler) http.Handler {
 			return
 		}
 		ctx := r.Context()
-		identity, err := m.auth(ctx, &Request{
+		info, err := m.auth(ctx, &Request{
 			Procedure:  procedureFromHTTP(r),
 			ClientAddr: r.RemoteAddr,
 			Protocol:   protocolFromHTTP(r),
@@ -106,16 +106,16 @@ func (m *Middleware) Wrap(next http.Handler) http.Handler {
 			m.errW.Write(w, r, err)
 			return
 		}
-		if identity != nil {
-			r = r.WithContext(SetIdentity(ctx, identity))
+		if info != nil {
+			r = r.WithContext(SetInfo(ctx, info))
 		}
 		next.ServeHTTP(w, r)
 	})
 }
 
 // Interceptor is a server-side authentication interceptor. In addition to
-// rejecting unauthenticated requests, it can optionally attach an identity to
-// the context of authenticated requests.
+// rejecting unauthenticated requests, it can optionally attach arbitrary
+// information to the context of authenticated requests.
 //
 // Because RPC interceptors run after the request has already been decompressed
 // and unmarshaled, it's inefficient (and potentially dangerous) to rely on
@@ -134,9 +134,9 @@ type Interceptor struct {
 }
 
 // NewInterceptor constructs a Connect interceptor using the supplied
-// authentication function. If authentication succeeds, the authenticated
-// identity (if any) will be attached to the context. Subsequent
-// interceptors and application code may access it with [GetIdentity].
+// authentication function. If authentication succeeds, the authentication
+// information (if any) will be attached to the context. Subsequent
+// interceptors and application code may access it with [GetInfo].
 //
 // Most applications should use [Middleware] instead.
 func NewInterceptor(auth AuthFunc) *Interceptor {
@@ -148,7 +148,7 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 		spec := req.Spec()
 		peer := req.Peer()
-		identity, err := i.auth(ctx, &Request{
+		info, err := i.auth(ctx, &Request{
 			Procedure:  spec.Procedure,
 			ClientAddr: peer.Addr,
 			Protocol:   peer.Protocol,
@@ -157,7 +157,7 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 		if err != nil {
 			return nil, err
 		}
-		return next(SetIdentity(ctx, identity), req)
+		return next(SetInfo(ctx, info), req)
 	}
 }
 
@@ -171,7 +171,7 @@ func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) co
 	return func(ctx context.Context, conn connect.StreamingHandlerConn) error {
 		spec := conn.Spec()
 		peer := conn.Peer()
-		identity, err := i.auth(ctx, &Request{
+		info, err := i.auth(ctx, &Request{
 			Procedure:  spec.Procedure,
 			ClientAddr: peer.Addr,
 			Protocol:   peer.Protocol,
@@ -180,7 +180,7 @@ func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) co
 		if err != nil {
 			return err
 		}
-		return next(SetIdentity(ctx, identity), conn)
+		return next(SetInfo(ctx, info), conn)
 	}
 }
 

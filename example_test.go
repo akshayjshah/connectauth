@@ -18,9 +18,9 @@ func authenticate(ctx context.Context, req *connectauth.Request) (any, error) {
 		// connect.CodeUnauthenticated.
 		return nil, connectauth.Errorf("try %q as a bearer token instead", passphrase)
 	}
-	// Once we've authenticated the request, we can return the authenticated
-	// identity. The identity gets attached to the context passed to subsequent
-	// interceptors and our service implementation.
+	// Once we've authenticated the request, we can return some information about
+	// the client. That information gets attached to the context passed to
+	// subsequent interceptors and our service implementation.
 	return "Ali Baba", nil
 }
 
@@ -28,9 +28,9 @@ func authenticate(ctx context.Context, req *connectauth.Request) (any, error) {
 // this example, we'll use a small stub.
 func NewHelloServiceHandler(svc any, opts ...connect.HandlerOption) (string, http.Handler) {
 	return "/hello.v1/Hello", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Service implementations can retrieve the authenticated identity of the
+		// Service implementations can retrieve information about the authenticated
 		// caller from the context.
-		identity := connectauth.GetIdentity(r.Context())
+		identity := connectauth.GetInfo(r.Context())
 		fmt.Fprintf(w, "Hello, %v!", identity)
 	})
 }
