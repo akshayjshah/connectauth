@@ -4,12 +4,12 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/bufbuild/connect-go"
 	"go.akshayshah.org/attest"
+	"go.akshayshah.org/memhttp/memhttptest"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -64,13 +64,12 @@ func TestInterceptor(t *testing.T) {
 		},
 		connect.WithInterceptors(auth),
 	))
-	srv := httptest.NewServer(mux)
-	t.Cleanup(srv.Close)
+	srv := memhttptest.New(t, mux)
 
 	t.Run("unary", func(t *testing.T) {
 		client := connect.NewClient[emptypb.Empty, emptypb.Empty](
 			srv.Client(),
-			srv.URL+"/unary",
+			srv.URL()+"/unary",
 		)
 		req := connect.NewRequest(&emptypb.Empty{})
 		_, err := client.CallUnary(context.Background(), req)
@@ -84,7 +83,7 @@ func TestInterceptor(t *testing.T) {
 	t.Run("streaming", func(t *testing.T) {
 		client := connect.NewClient[emptypb.Empty, emptypb.Empty](
 			srv.Client(),
-			srv.URL+"/clientstream",
+			srv.URL()+"/clientstream",
 		)
 		stream := client.CallClientStream(context.Background())
 		stream.Send(nil)
@@ -108,13 +107,12 @@ func TestMiddleware(t *testing.T) {
 		}
 		io.WriteString(w, "ok")
 	})
-	srv := httptest.NewServer(NewMiddleware(authenticate).Wrap(mux))
-	t.Cleanup(srv.Close)
+	srv := memhttptest.New(t, NewMiddleware(authenticate).Wrap(mux))
 
 	assertResponse := func(headers http.Header, expectCode int) {
 		req, err := http.NewRequest(
 			http.MethodPost,
-			srv.URL+"/empty.v1/GetEmpty",
+			srv.URL()+"/empty.v1/GetEmpty",
 			strings.NewReader("{}"),
 		)
 		attest.Ok(t, err)
