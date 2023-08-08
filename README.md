@@ -5,9 +5,9 @@ connectauth
 [![Report Card](https://goreportcard.com/badge/go.akshayshah.org/connectauth)](https://goreportcard.com/report/go.akshayshah.org/connectauth)
 [![GoDoc](https://pkg.go.dev/badge/go.akshayshah.org/connectauth.svg)](https://pkg.go.dev/go.akshayshah.org/connectauth)
 
-`connectauth` provides flexible authentication for [`connect-go`][connect]
-servers. It works with any authentication function, covers both unary and
-streaming RPCs, and runs efficiently.
+`connectauth` provides flexible authentication for [Connect][connect]
+servers written in Go. It works with any authentication function, covers both
+unary and streaming RPCs, and runs efficiently.
 
 ## Installation
 
@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	"go.akshayshah.org/connectauth"
 )
 
@@ -79,6 +79,6 @@ major version.
 
 Offered under the [MIT license][license].
 
-[connect]: https://github.com/bufbuild/connect-go
+[connect]: https://github.com/connectrpc/connect-go
 [go-support-policy]: https://golang.org/doc/devel/release#policy
 [license]: https://github.com/akshayjshah/connectauth/blob/main/LICENSE
