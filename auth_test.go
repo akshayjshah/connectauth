@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	"go.akshayshah.org/attest"
 	"go.akshayshah.org/memhttp/memhttptest"
 	"google.golang.org/protobuf/types/known/emptypb"
