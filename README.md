@@ -1,13 +1,13 @@
-connectauth
-===========
+connectauth (deprecated)
+========================
 
 [![Build](https://github.com/akshayjshah/connectauth/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/akshayjshah/connectauth/actions/workflows/ci.yaml)
 [![Report Card](https://goreportcard.com/badge/go.akshayshah.org/connectauth)](https://goreportcard.com/report/go.akshayshah.org/connectauth)
 [![GoDoc](https://pkg.go.dev/badge/go.akshayshah.org/connectauth.svg)](https://pkg.go.dev/go.akshayshah.org/connectauth)
 
 > [!CAUTION]
-> A variant of this package is now officially part of the Connect project! Use
-> [connectrpc.com/authn][authn] instead.
+> A variant of this package is now officially part of the Connect project! **Use
+> [connectrpc.com/authn][authn] instead.**
 
 `connectauth` provides flexible authentication for [Connect][connect]
 servers written in Go. It works with any authentication function, covers both
@@ -69,15 +69,11 @@ func main() {
 }
 ```
 
-## Status: Unstable
+## Status: Deprecated
 
-This module is currently _unstable_, but I hope to release a stable 1.0 by
-mid-2023.
-
-It supports the [two most recent major releases][go-support-policy] of Go.
-Within those parameters, `connectauth` follows semantic versioning. Once I cut
-a stable release, no breaking changes will be made without incrementing the
-major version.
+This module is currently _deprecated_ in favor of
+[connectrpc.com/authn][authn]. This package isn't going anywhere, but users
+should migrate &mdash; the APIs are very similar!
 
 ## Legal
 
