@@ -5,6 +5,10 @@ connectauth
 [![Report Card](https://goreportcard.com/badge/go.akshayshah.org/connectauth)](https://goreportcard.com/report/go.akshayshah.org/connectauth)
 [![GoDoc](https://pkg.go.dev/badge/go.akshayshah.org/connectauth.svg)](https://pkg.go.dev/go.akshayshah.org/connectauth)
 
+> [!CAUTION]
+> A variant of this package is now officially part of the Connect project! Use
+> [connectrpc.com/authn][authn] instead.
+
 `connectauth` provides flexible authentication for [Connect][connect]
 servers written in Go. It works with any authentication function, covers both
 unary and streaming RPCs, and runs efficiently.
@@ -79,6 +83,7 @@ major version.
 
 Offered under the [MIT license][license].
 
+[authn]: https://github.com/connectrpc/authn-go
 [connect]: https://github.com/connectrpc/connect-go
 [go-support-policy]: https://golang.org/doc/devel/release#policy
 [license]: https://github.com/akshayjshah/connectauth/blob/main/LICENSE
